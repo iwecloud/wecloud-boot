@@ -1,0 +1,54 @@
+server:
+  port: 9000
+
+
+
+spring:
+  application:
+    name: wecloud
+
+  # 数据库配置
+  datasource:
+    url: jdbc:mysql://192.168.199.10:3306/${spring.application.name}?useSSL=false
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    druid:
+      initial-size: 100   # 初始化连接数
+      max-active: 1000    # 最大连接数量
+      min-idle: 50       # 最小连接数量
+      filter: stat,wall # 启用监控统计，启用防注入
+      # 监控配置
+      web-stat-filter:
+        enabled: true
+        url-pattern: /*
+        exclusions: /druid/*,*.js,*.gif,*.jpg,*.bmp,*.png,*.css,*.ico
+        session-stat-enable: true
+        principal-session-name: session_name
+        principal-cookie-name: cookie_name
+      # 监控页面页面
+      stat-view-servlet:
+        enabled: true
+        url-pattern: /druid/*
+        reset-enable: false
+        login-username: admin
+        login-password: admin
+
+  redis:
+    database: 2
+    host: 192.168.199.129
+    port: 6379
+    password: redis
+    timeout: 10000ms
+    lettuce:
+      pool:
+        max-active: 1000 # 最大连接数
+        max-idle: 500 # 最大空闲连接
+        min-idle: 100 # 最小空闲连接
+        max-wait: -1 # 最大阻塞等待时间
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  global-config:
+    db-config:
+      id-type: AUTO
