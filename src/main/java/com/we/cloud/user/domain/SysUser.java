@@ -1,4 +1,4 @@
-package com.we.cloud.core.user.domain;
+package com.we.cloud.user.domain;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -6,20 +6,28 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.we.cloud.core.base.BaseDomain;
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * @ClassName SysUser
  * @description
  * @author wecloud
  */
 @Data
-@TableName("SYS_USER")
-public class SysUser extends BaseDomain {
+@TableName("sys_user")
+public class SysUser extends BaseDomain implements Serializable {
 
     /**
      * 用户ID
      */
     @TableId
-    private long userId;
+    private Long id;
+
+    /**
+     * 租户ID
+     */
+    @TableField
+    private Long tenantId;
 
     /**
      * 登录名
@@ -58,14 +66,14 @@ public class SysUser extends BaseDomain {
     private String email;
 
     /**
-     * 锁定
+     * 锁定：1: 锁定/ 0: 未锁定
      */
     @TableField
-    private String locked;
+    private Integer locked;
 
     /**
-     * 禁用
+     * 是否启用: 1:启用/ 0:禁用
      */
     @TableField
-    private String disabled;
+    private Integer enabled;
 }
