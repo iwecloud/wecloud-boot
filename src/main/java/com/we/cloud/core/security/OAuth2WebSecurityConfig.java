@@ -15,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 /**
  * @ClassName OAuth2WebSecurityConfig
@@ -46,13 +47,12 @@ public class OAuth2WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        // @formatter:off
-        http
-                .requestMatchers().anyRequest()
-                .and()
-                .authorizeRequests()
-                .antMatchers("/oauth/**").permitAll();
-        // @formatter:on
+
+        http.authorizeRequests()
+                .antMatchers("/api/sys/tenant/test").permitAll()
+                .antMatchers("/oauth/**").permitAll()
+                .antMatchers("/api/**")
+                .authenticated();//配置order访问控制，必须认证过后才可以访问
     }
 
     @Bean

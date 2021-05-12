@@ -24,9 +24,12 @@ public class OAuth2ResourceConfig extends ResourceServerConfigurerAdapter {
 
     @Override
     public void configure(HttpSecurity http) throws Exception {
-        http
-                .authorizeRequests()
-                .antMatchers("/order/**").authenticated();//配置order访问控制，必须认证过后才可以访问
+        http.authorizeRequests()
+                .antMatchers("/api/sys/information/admin").hasAnyRole("ADMIN")
+                .antMatchers("/api/sys/tenant/test").permitAll()
+                .antMatchers("/oauth/**").permitAll()
+                .antMatchers("/api/**")
+                .authenticated();//配置order访问控制，必须认证过后才可以访问
 
     }
 }

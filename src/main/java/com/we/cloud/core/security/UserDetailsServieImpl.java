@@ -1,16 +1,23 @@
 package com.we.cloud.core.security;
 
 
-import com.we.cloud.core.user.domain.SysUser;
+import com.we.cloud.user.domain.SysRole;
+import com.we.cloud.user.domain.SysTenant;
+import com.we.cloud.user.domain.SysUser;
+import com.we.cloud.user.service.SysRoleService;
+import com.we.cloud.user.service.SysTenantService;
+import com.we.cloud.user.service.SysUserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName UserDetailsServieImpl
@@ -22,6 +29,14 @@ import java.util.List;
 @Service
 public class UserDetailsServieImpl implements UserDetailsService {
 
+    @Autowired
+    private SysUserService sysUserService;
+
+    @Autowired
+    private SysRoleService roleService;
+
+    @Autowired
+    private SysTenantService tenantService;
 
     /**
      * loadUserByUsername : 实现根据用户名返回用户信息方法
@@ -34,20 +49,34 @@ public class UserDetailsServieImpl implements UserDetailsService {
      */
     @Override
     public UserDetails loadUserByUsername(String loginName) throws UsernameNotFoundException {
-        SysUser sysUser = new SysUser();
+        List<SysUser> userList = sysUserService.queryUserByLoginname(loginName);
 
-        // throw new UsernameNotFoundException("用户不存在");
+        if(CollectionUtils.isEmpty(userList)){
+            throw new UsernameNotFoundException("用户不存在");
+        }
 
-        sysUser.setLoginname("admin");
-        sysUser.setName("admin");
-        sysUser.setPassword("{bcrypt}$2a$10$XH7UQhotU.ov4d0PowcWF.l95brkMVzwdD2GC1qtHVEWnhwnhuVeC");
+        // 主账号
+        SysUser sysUser = userList.get(0);
 
+        // 查询用户的主租户、租户列表
+        List<Long> tenantIds = userList.stream().map(SysUser::getTenantId).collect(Collectors.toList());
+        List<SysTenant> tenantList = tenantService.queryTenantById(tenantIds);
+        SysTenant tenant = tenantList.get(0);
+
+        // 查询用户在主租户下的角色列表
+        List<SysRole> roleList = roleService.queryUserRoleList(sysUser.getId(), tenant.getId());
+        if(CollectionUtils.isEmpty(roleList)){
+            // TODO: 用户无角色
+        }
 
         List<SimpleGrantedAuthority> authorities = new ArrayList<SimpleGrantedAuthority>();
         SimpleGrantedAuthority simpleGrantedAuthority;
         simpleGrantedAuthority = new SimpleGrantedAuthority("ROLE_ADMIN");
         authorities.add(simpleGrantedAuthority);
 
-        return new User(sysUser.getLoginname(), sysUser.getPassword(), authorities);
+        return new CustomUser(sysUser.getLoginname(), sysUser.getPassword(),
+                sysUser.getId(), tenant, roleList.get(0),
+                tenantList, roleList,
+                authorities);
     }
 }
